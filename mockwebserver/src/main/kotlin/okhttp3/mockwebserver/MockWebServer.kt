@@ -1041,7 +1041,10 @@ class MockWebServer : ExternalResource(), Closeable {
       response: MockResponse
     ) {
       val settings = response.settings
-      stream.connection.setSettings(settings)
+      // TODO(jwilson): don't send settings if nothing has changed.
+      if (settings != null) {
+        stream.connection.setSettings(settings)
+      }
 
       if (response.socketPolicy === NO_RESPONSE) {
         return

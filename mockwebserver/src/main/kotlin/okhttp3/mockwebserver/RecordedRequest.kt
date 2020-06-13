@@ -106,7 +106,7 @@ class RecordedRequest @JvmOverloads constructor(
       val scheme = if (socket is SSLSocket) "https" else "http"
       val inetAddress = socket.localAddress
 
-      var hostname = inetAddress.hostName
+      var hostname = inetAddress.hostAddress
       if (inetAddress is Inet6Address && hostname.contains(':')) {
         // hostname is likely some form representing the IPv6 bytes
         // 2001:0db8:85a3:0000:0000:8a2e:0370:7334

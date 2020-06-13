@@ -64,6 +64,7 @@ import okhttp3.internal.RecordingOkAuthenticator;
 import okhttp3.internal.Util;
 import okhttp3.internal.http.RecordingProxySelector;
 import okhttp3.internal.io.InMemoryFileSystem;
+import okhttp3.internal.io.InProcessNetwork;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -104,17 +105,23 @@ import static org.junit.Assume.assumeFalse;
 
 public final class CallTest {
   @Rule public final PlatformRule platform = new PlatformRule();
-  @Rule public final TestRule timeout = new Timeout(30_000, TimeUnit.MILLISECONDS);
+  @Rule public final TestRule timeout = new Timeout(1_000, TimeUnit.MILLISECONDS);
   @Rule public final MockWebServer server = new MockWebServer();
   @Rule public final MockWebServer server2 = new MockWebServer();
   @Rule public final InMemoryFileSystem fileSystem = new InMemoryFileSystem();
   @Rule public final OkHttpClientTestRule clientTestRule = new OkHttpClientTestRule();
   @Rule public final TestLogHandler testLogHandler = new TestLogHandler(OkHttpClient.class);
 
+  public final InProcessNetwork inProcessNetwork = new InProcessNetwork();
+  {
+    server.setServerSocketFactory(inProcessNetwork.getServerSocketFactory());
+  }
+
   private RecordingEventListener listener = new RecordingEventListener();
   private HandshakeCertificates handshakeCertificates = localhost();
   private OkHttpClient client = clientTestRule.newClientBuilder()
       .eventListenerFactory(clientTestRule.wrap(listener))
+      .socketFactory(inProcessNetwork.getSocketFactory())
       .build();
   private RecordingCallback callback = new RecordingCallback();
   private Cache cache = new Cache(new File("/cache/"), Integer.MAX_VALUE, fileSystem);

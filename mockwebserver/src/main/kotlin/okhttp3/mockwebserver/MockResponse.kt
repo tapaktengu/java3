@@ -72,7 +72,7 @@ class MockResponse : Cloneable {
   private var headersDelayUnit = TimeUnit.MILLISECONDS
 
   private var promises = mutableListOf<PushPromise>()
-  var settings: Settings = Settings()
+  var settings: Settings? = null
     private set
   var webSocketListener: WebSocketListener? = null
     private set
@@ -328,7 +328,7 @@ class MockResponse : Cloneable {
    * When [protocols][MockWebServer.protocols] include [HTTP_2][okhttp3.Protocol], this pushes
    * [settings] before writing the response.
    */
-  fun withSettings(settings: Settings) = apply {
+  fun withSettings(settings: Settings?) = apply {
     this.settings = settings
   }
 

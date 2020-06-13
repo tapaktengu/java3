@@ -15,16 +15,12 @@
  */
 package okhttp3
 
-import java.io.IOException
-import java.net.Proxy
-import java.security.cert.X509Certificate
-import java.time.Duration
-import java.util.concurrent.TimeUnit
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.connection.RealConnection
 import okhttp3.internal.connection.RealConnection.Companion.IDLE_CONNECTION_HEALTHY_NS
 import okhttp3.internal.http.RecordingProxySelector
+import okhttp3.internal.io.InProcessNetwork
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
@@ -40,17 +36,28 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
 import org.junit.rules.Timeout
+import java.io.IOException
+import java.net.Proxy
+import java.security.cert.X509Certificate
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 class CallKotlinTest {
+  val inProcessNetwork = InProcessNetwork()
+
   @JvmField @Rule val platform = PlatformRule()
   @JvmField @Rule val timeout: TestRule = Timeout(30_000, TimeUnit.MILLISECONDS)
-  @JvmField @Rule val server = MockWebServer()
+  @JvmField @Rule val server = MockWebServer().also {
+    it.serverSocketFactory = inProcessNetwork.serverSocketFactory
+  }
   @JvmField @Rule val clientTestRule = OkHttpClientTestRule().apply {
     recordFrames = true
     recordSslDebug = true
   }
 
-  private var client = clientTestRule.newClient()
+  private var client = clientTestRule.newClientBuilder()
+      .socketFactory(inProcessNetwork.socketFactory)
+      .build()
   private val handshakeCertificates = localhost()
 
   @Before
